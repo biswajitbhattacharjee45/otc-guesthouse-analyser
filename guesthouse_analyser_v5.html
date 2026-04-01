@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OTC Guest House · Booking Analyser</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+:root{
+  --bg:#07090f;
+  --bg2:#0d1117;
+  --bg3:#131920;
+  --bg4:#1a2230;
+  --glass:rgba(255,255,255,0.045);
+  --glass2:rgba(255,255,255,0.075);
+  --glass3:rgba(255,255,255,0.1);
+  --bd:rgba(255,255,255,0.08);
+  --bd2:rgba(255,255,255,0.14);
+  --bd3:rgba(255,255,255,0.22);
+  --tx:#eef2f8;
+  --tx2:#8fa3bd;
+  --tx3:#506070;
+  --blue:#3b82f6;
+  --blue2:#60a5fa;
+  --sky:#0ea5e9;
+  --teal:#14b8a6;
+  --green:#22c55e;
+  --amber:#f59e0b;
+  --red:#ef4444;
+  --purple:#a855f7;
+  --pink:#ec4899;
+  --font:'Outfit',sans-serif;
+  --font-d:'Playfair Display',serif;
+}
+
+html{scroll-behavior:smooth;}
+body{font-family:var(--font);background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;}
+
+/* ─── ANIMATED BACKGROUND ──────────────────────── */
+.bg-wrap{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.bg-wrap::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 70% 60% at 15% 5%,rgba(59,130,246,0.1) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 50% at 85% 85%,rgba(20,184,166,0.07) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 40% at 50% 50%,rgba(168,85,247,0.05) 0%,transparent 60%),
+    var(--bg);
+}
+.bg-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.022) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.022) 1px,transparent 1px);
+  background-size:52px 52px;
+  mask-image:radial-gradient(ellipse 90% 90% at center,black 30%,transparent 100%);
+}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);animation:orb-float 18s ease-in-out infinite alternate;}
+.orb1{width:480px;height:480px;background:radial-gradient(circle,rgba(59,130,246,0.13),transparent 70%);top:-160px;left:-140px;animation-duration:22s;}
+.orb2{width:360px;height:360px;background:radial-gradient(circle,rgba(14,165,233,0.09),transparent 70%);bottom:-100px;right:-80px;animation-delay:-8s;animation-duration:19s;}
+.orb3{width:280px;height:280px;background:radial-gradient(circle,rgba(168,85,247,0.07),transparent 70%);top:40%;left:55%;animation-delay:-14s;}
+@keyframes orb-float{from{transform:translate(0,0) scale(1);}to{transform:translate(35px,25px) scale(1.08);}}
+
+/* ─── LOGIN PAGE ────────────────────────────────── */
+#login-page{
+  position:fixed;inset:0;z-index:100;
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
+}
+
+.login-card{
+  width:100%;max-width:420px;
+  background:rgba(13,17,23,0.75);
+  border:1px solid var(--bd2);
+  border-radius:24px;
+  padding:40px 36px 36px;
+  backdrop-filter:blur(28px);
+  box-shadow:0 32px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.04),inset 0 1px 0 rgba(255,255,255,0.07);
+  animation:card-in 0.6s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes card-in{from{opacity:0;transform:translateY(24px) scale(0.97);}to{opacity:1;transform:none;}}
+
+.login-icon{
+  width:60px;height:60px;border-radius:18px;
+  background:linear-gradient(135deg,#1d4ed8,#0ea5e9);
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;margin-bottom:20px;
+  box-shadow:0 0 0 1px rgba(59,130,246,0.35),0 8px 28px rgba(59,130,246,0.3);
+}
+.login-title{font-family:var(--font-d);font-size:1.75rem;font-weight:700;color:var(--tx);margin-bottom:4px;}
+.login-sub{font-size:13px;color:var(--tx2);margin-bottom:28px;line-height:1.5;}
+
+.login-field{margin-bottom:16px;}
+.login-field label{display:block;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--tx2);margin-bottom:8px;}
+.login-field input{
+  width:100%;padding:13px 16px;
+  background:rgba(255,255,255,0.04);
+  border:1.5px solid var(--bd2);
+  border-radius:12px;
+  font-family:var(--font);font-size:14px;font-weight:400;
+  color:var(--tx);outline:none;
+  transition:border-color 0.25s,box-shadow 0.25s,background 0.25s;
+}
+.login-field input:focus{
+  border-color:rgba(59,130,246,0.55);
+  box-shadow:0 0 0 3px rgba(59,130,246,0.12);
+  background:rgba(255,255,255,0.055);
+}
+.login-field input::placeholder{color:var(--tx3);}
+
+.login-error{
+  display:none;
+  align-items:center;gap:8px;
+  background:rgba(239,68,68,0.1);
+  border:1px solid rgba(239,68,68,0.25);
+  border-radius:10px;padding:10px 14px;
+  font-size:13px;color:#fca5a5;margin-bottom:16px;
+}
+.login-error.show{display:flex;}
+
+.btn-login{
+  width:100%;padding:14px;
+  background:linear-gradient(135deg,#2563eb,#0ea5e9);
+  border:none;border-radius:12px;
+  font-family:var(--font);font-size:14px;font-weight:600;
+  color:#fff;cursor:pointer;letter-spacing:0.04em;
+  box-shadow:0 4px 20px rgba(59,130,246,0.35);
+  transition:all 0.25s;margin-top:4px;
+}
+.btn-login:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 8px 28px rgba(59,130,246,0.45);}
+.btn-login:active{transform:translateY(0);}
+
+.login-footer{margin-top:20px;text-align:center;font-size:12px;color:var(--tx3);}
+
+/* ─── MAIN APP ──────────────────────────────────── */
+#app-page{display:none;position:relative;z-index:1;min-height:100vh;padding:28px 20px 60px;}
+
+.wrap{max-width:1040px;margin:0 auto;}
+
+/* TOPBAR */
+.topbar{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 20px;
+  background:rgba(13,17,23,0.7);
+  border:1px solid var(--bd);
+  border-radius:18px;
+  backdrop-filter:blur(20px);
+  margin-bottom:22px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.3);
+  flex-wrap:wrap;gap:12px;
+}
+.app-logo{
+  width:44px;height:44px;border-radius:14px;
+  background:linear-gradient(135deg,#1d4ed8,#0ea5e9);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+  box-shadow:0 0 0 1px rgba(59,130,246,0.3),0 4px 16px rgba(59,130,246,0.2);
+}
+.app-title h1{font-family:var(--font-d);font-size:clamp(16px,2.5vw,22px);font-weight:700;color:var(--tx);}
+.app-title p{font-size:12px;color:var(--tx2);margin-top:2px;}
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;}
+
+.user-chip{
+  display:flex;align-items:center;gap:8px;
+  background:var(--glass2);border:1px solid var(--bd);
+  border-radius:100px;padding:6px 12px 6px 6px;
+  font-size:12px;color:var(--tx2);
+}
+.user-chip .avatar{
+  width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--sky));
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#fff;
+}
+
+/* YEAR BAR */
+.year-bar{
+  display:flex;gap:8px;margin-bottom:20px;
+  background:rgba(13,17,23,0.6);
+  border:1px solid var(--bd);border-radius:16px;padding:5px;
+  backdrop-filter:blur(16px);
+}
+.yr-btn{
+  flex:1;padding:10px 16px;border:none;border-radius:12px;
+  font-family:var(--font);font-size:13px;font-weight:600;
+  cursor:pointer;transition:all 0.2s;
+  background:transparent;color:var(--tx3);
+}
+.yr-btn:hover:not(.active){background:var(--glass2);color:var(--tx2);}
+.yr-btn.active{
+  background:linear-gradient(135deg,rgba(37,99,235,0.22),rgba(14,165,233,0.16));
+  color:var(--blue2);
+  border:1px solid rgba(59,130,246,0.28);
+  box-shadow:0 0 16px rgba(59,130,246,0.1);
+}
+
+/* STATUS BAR */
+.status-bar{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 18px;border-radius:14px;
+  background:var(--glass);border:1px solid var(--bd);
+  margin-bottom:20px;font-size:13px;color:var(--tx2);
+  backdrop-filter:blur(12px);
+}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--tx3);flex-shrink:0;}
+.dot.loading{background:var(--amber);animation:blink 1s ease-in-out infinite;}
+.dot.done{background:var(--green);box-shadow:0 0 8px rgba(34,197,94,0.5);}
+.dot.error{background:var(--red);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinning{animation:spin 1s linear infinite;display:inline-block;}
+
+/* STAT CARDS */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px;}
+.stat{
+  background:var(--glass);
+  border:1px solid var(--bd);border-radius:18px;
+  padding:20px 20px 18px;position:relative;overflow:hidden;
+  transition:transform 0.25s,border-color 0.25s,box-shadow 0.25s;
+  backdrop-filter:blur(12px);
+}
+.stat:hover{transform:translateY(-3px);border-color:var(--bd2);box-shadow:0 12px 36px rgba(0,0,0,0.3);}
+.stat-accent{position:absolute;top:0;left:0;right:0;height:2px;border-radius:18px 18px 0 0;}
+.stat.bl .stat-accent{background:linear-gradient(90deg,#2563eb,#0ea5e9);}
+.stat.gn .stat-accent{background:linear-gradient(90deg,#16a34a,#22c55e);}
+.stat.am .stat-accent{background:linear-gradient(90deg,#d97706,#f59e0b);}
+.stat.pu .stat-accent{background:linear-gradient(90deg,#7c3aed,#a855f7);}
+.stat-icon{font-size:18px;margin-bottom:10px;opacity:0.7;}
+.stat-v{font-size:30px;font-weight:700;color:var(--tx);line-height:1;font-variant-numeric:tabular-nums;}
+.stat-l{font-size:11px;color:var(--tx3);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-top:6px;}
+
+/* SEARCH ROW */
+.srow{display:flex;gap:10px;margin-bottom:18px;}
+.sinp{
+  flex:1;padding:12px 18px;
+  border-radius:14px;border:1.5px solid var(--bd2);
+  background:var(--glass);color:var(--tx);
+  font-size:14px;font-family:var(--font);outline:none;
+  backdrop-filter:blur(12px);
+  transition:border-color 0.25s,box-shadow 0.25s;
+}
+.sinp:focus{border-color:rgba(59,130,246,0.5);box-shadow:0 0 0 3px rgba(59,130,246,0.1);}
+.sinp::placeholder{color:var(--tx3);}
+
+/* BUTTONS */
+.btn{
+  padding:11px 18px;border-radius:12px;border:none;
+  font-weight:600;font-size:13px;cursor:pointer;
+  font-family:var(--font);transition:all 0.2s;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn-p{
+  background:linear-gradient(135deg,#2563eb,#0ea5e9);
+  color:#fff;box-shadow:0 4px 16px rgba(59,130,246,0.28);
+}
+.btn-p:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 8px 24px rgba(59,130,246,0.4);}
+.btn-g{
+  background:var(--glass2);color:var(--tx2);
+  border:1px solid var(--bd2);backdrop-filter:blur(10px);
+}
+.btn-g:hover{background:var(--glass3);color:var(--tx);border-color:var(--bd3);}
+.btn-logout{
+  background:rgba(239,68,68,0.1);color:#fca5a5;
+  border:1px solid rgba(239,68,68,0.22);
+  padding:8px 14px;border-radius:10px;font-size:12px;
+}
+.btn-logout:hover{background:rgba(239,68,68,0.18);border-color:rgba(239,68,68,0.35);}
+
+/* TABS */
+.tabs{
+  display:flex;gap:4px;margin-bottom:18px;
+  background:rgba(13,17,23,0.6);
+  border-radius:16px;padding:5px;
+  border:1px solid var(--bd);
+  backdrop-filter:blur(16px);
+}
+.tab{
+  flex:1;padding:10px;border:none;border-radius:12px;
+  font-family:var(--font);font-size:13px;font-weight:600;
+  cursor:pointer;transition:all 0.22s;
+  background:transparent;color:var(--tx3);
+}
+.tab:hover:not(.active){background:var(--glass2);color:var(--tx2);}
+.tab.active{
+  background:linear-gradient(135deg,rgba(37,99,235,0.2),rgba(14,165,233,0.14));
+  color:#60a5fa;border:1px solid rgba(59,130,246,0.28);
+}
+
+/* TABLE */
+.tw{overflow-x:auto;border-radius:16px;border:1px solid var(--bd);backdrop-filter:blur(12px);}
+table{width:100%;border-collapse:collapse;}
+thead th{
+  padding:14px 18px;font-size:11px;font-weight:700;
+  color:var(--tx3);text-transform:uppercase;letter-spacing:0.08em;
+  background:rgba(255,255,255,0.025);text-align:left;
+  white-space:nowrap;border-bottom:1px solid var(--bd);
+}
+tbody td{padding:13px 18px;font-size:13px;color:var(--tx);border-bottom:1px solid rgba(255,255,255,0.025);}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr{transition:background 0.15s;}
+tbody tr:hover td{background:rgba(59,130,246,0.05);cursor:pointer;}
+
+/* RANK BADGES */
+.rank{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;font-size:12px;font-weight:800;}
+.r1{background:rgba(255,215,0,0.12);color:#ffd700;border:1px solid rgba(255,215,0,0.22);}
+.r2{background:rgba(192,192,192,0.12);color:#c0c0c0;border:1px solid rgba(192,192,192,0.22);}
+.r3{background:rgba(205,127,50,0.12);color:#cd7f32;border:1px solid rgba(205,127,50,0.22);}
+.rn{background:var(--glass);color:var(--tx3);}
+
+.cnt{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:20px;background:rgba(59,130,246,0.1);color:#60a5fa;font-weight:700;font-size:12px;border:1px solid rgba(59,130,246,0.2);}
+.chips{display:flex;gap:4px;flex-wrap:wrap;}
+.chip{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;background:var(--glass2);color:var(--tx3);border:1px solid var(--bd);}
+.bar-w{display:flex;align-items:center;gap:8px;}
+.bar-bg{flex:1;height:5px;background:rgba(59,130,246,0.07);border-radius:4px;overflow:hidden;min-width:60px;}
+.bar-f{height:100%;background:linear-gradient(90deg,#2563eb,#0ea5e9);border-radius:4px;}
+.pct{font-size:11px;color:var(--tx3);min-width:36px;text-align:right;}
+
+/* DETAIL VIEW */
+.d-hero{
+  background:var(--glass);border:1px solid var(--bd2);border-radius:18px;
+  padding:22px;margin-bottom:16px;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  backdrop-filter:blur(16px);
+}
+.d-av{
+  width:54px;height:54px;border-radius:50%;
+  background:linear-gradient(135deg,#2563eb,#0ea5e9);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:800;color:#fff;flex-shrink:0;
+  box-shadow:0 0 0 1px rgba(59,130,246,0.3),0 4px 16px rgba(59,130,246,0.25);
+}
+.d-info h2{font-size:20px;font-weight:700;color:var(--tx);}
+.d-info p{font-size:13px;color:var(--tx2);margin-top:4px;}
+.d-stats{display:flex;gap:24px;margin-left:auto;flex-wrap:wrap;}
+.ds{text-align:center;}
+.ds-v{font-size:24px;font-weight:800;color:#60a5fa;}
+.ds-l{font-size:10px;color:var(--tx3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;}
+.bk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
+.bk{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 16px;background:var(--glass);
+  border-radius:12px;border:1px solid var(--bd);
+  border-left:3px solid var(--blue);transition:transform 0.15s;
+}
+.bk:hover{transform:translateY(-2px);}
+.bk-d{font-size:13px;font-weight:700;color:#60a5fa;}
+.bk-m{font-size:11px;color:var(--tx3);margin-top:2px;}
+.mhdr{
+  font-size:11px;font-weight:700;color:var(--blue2);
+  text-transform:uppercase;letter-spacing:0.1em;
+  padding:8px 0 6px;border-bottom:1px solid var(--bd);
+  margin-bottom:8px;margin-top:16px;
+}
+.mhdr:first-of-type{margin-top:0;}
+
+/* EMPTY */
+.empty{text-align:center;padding:56px 20px;color:var(--tx3);}
+.e-icon{font-size:40px;margin-bottom:14px;opacity:0.4;}
+.empty h3{font-size:16px;font-weight:700;color:var(--tx2);margin-bottom:6px;}
+.empty p{font-size:13px;}
+
+/* REVENUE SUB-TABS */
+.rev-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.rev-tab{
+  padding:9px 18px;border-radius:10px;border:1px solid var(--bd2);
+  background:var(--glass);color:var(--tx2);
+  font-family:var(--font);font-size:12px;font-weight:600;
+  cursor:pointer;transition:all 0.22s;backdrop-filter:blur(10px);
+}
+.rev-tab:hover{background:var(--glass2);color:var(--tx);}
+.rev-tab.active{
+  background:linear-gradient(135deg,rgba(37,99,235,0.2),rgba(14,165,233,0.14));
+  color:#60a5fa;border-color:rgba(59,130,246,0.28);
+  box-shadow:0 0 12px rgba(59,130,246,0.12);
+}
+
+/* SELECT DROPDOWN */
+select.nice{
+  padding:11px 16px;border-radius:12px;
+  border:1.5px solid var(--bd2);
+  background:var(--bg3);color:var(--tx);
+  font-size:14px;font-family:var(--font);outline:none;cursor:pointer;
+  transition:border-color 0.2s;
+}
+select.nice:focus{border-color:rgba(59,130,246,0.5);}
+
+/* DEBUG */
+.debug{margin-top:24px;background:rgba(0,0,0,0.4);border:1px solid var(--bd);border-radius:14px;padding:14px;}
+.debug summary{font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:0.08em;cursor:pointer;}
+.dbg{font-size:11px;color:var(--tx3);font-family:monospace;line-height:2;max-height:160px;overflow-y:auto;margin-top:10px;}
+
+/* SECTION DIVIDER */
+.sdiv{height:1px;background:var(--bd);margin:20px 0;}
+
+/* CREDIT SHINE */
+@keyframes credit-shine{0%{background-position:0% center;}100%{background-position:200% center;}}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.18);}
+</style>
+</head>
+<body>
+
+<!-- ── BACKGROUND ─────────────────────────────────── -->
+<div class="bg-wrap">
+  <div class="bg-grid"></div>
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     LOGIN PAGE
+════════════════════════════════════════════════════ -->
+<div id="login-page">
+  <div class="login-card">
+    <div class="login-icon">🏠</div>
+    <div class="login-title">Guest House Analyser</div>
+    <div class="login-sub">OTC Guwahati · Secure Access Portal<br>Sign in with your credentials to continue.</div>
+
+    <div class="login-error" id="login-err">
+      <span>⚠</span><span id="login-err-msg">Invalid username or password.</span>
+    </div>
+
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="inp-user" placeholder="Enter username" autocomplete="username" />
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="inp-pass" placeholder="Enter password" autocomplete="current-password" />
+    </div>
+
+    <button class="btn-login" onclick="doLogin()">Sign In →</button>
+
+    <div class="login-footer">OTC Guest House · Guwahati, Assam &nbsp;·&nbsp; Admin Access Only</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     MAIN APP PAGE
+════════════════════════════════════════════════════ -->
+<div id="app-page">
+<div class="wrap">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="app-logo">🏠</div>
+    <div class="app-title">
+      <h1>Guest House Booking Analyser</h1>
+      <p>OTC Booking · Live from Google Sheets</p>
+    </div>
+    <div class="topbar-right">
+      <div class="user-chip">
+        <div class="avatar" id="user-avatar">A</div>
+        <span id="user-label">Admin</span>
+      </div>
+      <button class="btn btn-p" onclick="loadData()" style="padding:9px 16px;">
+        <span id="ri">↻</span> Refresh
+      </button>
+      <button class="btn btn-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- YEAR BAR -->
+  <div class="year-bar">
+    <button class="yr-btn" id="yr-2025" onclick="selectYear('2025')">📅 2025</button>
+    <button class="yr-btn active" id="yr-2026" onclick="selectYear('2026')">📅 2026</button>
+    <button class="yr-btn" id="yr-2027" onclick="selectYear('2027')">📅 2027</button>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-bar">
+    <div class="dot" id="dot"></div>
+    <span id="st">Click Refresh to load data</span>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stats">
+    <div class="stat bl"><div class="stat-accent"></div><div class="stat-icon">📋</div><div class="stat-v" id="s1">—</div><div class="stat-l">Total Bookings</div></div>
+    <div class="stat gn"><div class="stat-accent"></div><div class="stat-icon">👤</div><div class="stat-v" id="s2">—</div><div class="stat-l">Unique Guests</div></div>
+    <div class="stat am"><div class="stat-accent"></div><div class="stat-icon">📅</div><div class="stat-v" id="s3">—</div><div class="stat-l">Months Loaded</div></div>
+    <div class="stat pu"><div class="stat-accent"></div><div class="stat-icon">🏆</div><div class="stat-v" id="s4">—</div><div class="stat-l">Top Guest Stays</div></div>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="srow">
+    <input class="sinp" id="si" placeholder="🔍  Search guest name..." oninput="handleSearch(this.value)"/>
+    <button class="btn btn-g" onclick="clearSearch()">✕ Clear</button>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" id="ts" onclick="switchTab('s')">📊 Guest Summary</button>
+    <button class="tab" id="td" onclick="switchTab('d')">🔍 Guest Detail</button>
+    <button class="tab" id="tr" onclick="switchTab('r')">💰 Revenue</button>
+    <button class="tab" id="to" onclick="switchTab('o')">🏠 Occupancy</button>
+  </div>
+
+  <!-- TAB CONTENT -->
+  <div id="vs">
+    <div class="tw">
+      <table>
+        <thead><tr><th>#</th><th>Guest Name</th><th>Total Stays</th><th>Months Visited</th><th>Share</th></tr></thead>
+        <tbody id="tb"><tr><td colspan="5"><div class="empty"><div class="e-icon">🏠</div><h3>No data loaded</h3><p>Click Refresh to begin</p></div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="vd" style="display:none;">
+    <div id="dc"><div class="empty"><div class="e-icon">🔍</div><h3>Search a guest</h3><p>Type a name in the search box above</p></div></div>
+  </div>
+
+  <div id="vo" style="display:none;">
+    <div id="occ-content"></div>
+  </div>
+
+  <div id="vr" style="display:none;">
+    <div class="rev-tabs">
+      <button class="rev-tab active" id="rs-person" onclick="showRevenue('person')">👤 Person-wise</button>
+      <button class="rev-tab" id="rs-month" onclick="showRevenue('month')">📅 Month-wise</button>
+      <button class="rev-tab" id="rs-date" onclick="showRevenue('date')">📆 Date-wise</button>
+      <button class="rev-tab" id="rs-dateq" onclick="showRevenue('dateq')">🔎 Date Query</button>
+    </div>
+    <div id="rev-content"></div>
+  </div>
+
+  <!-- DEBUG -->
+  <details class="debug">
+    <summary>Debug Log</summary>
+    <div class="dbg" id="dl">Ready.</div>
+  </details>
+
+  <!-- CREDIT SECTION -->
+  <div style="margin-top:32px;text-align:center;">
+    <div style="
+      display:inline-block;
+      background:linear-gradient(135deg,rgba(37,99,235,0.12),rgba(14,165,233,0.08),rgba(59,130,246,0.12));
+      border:1px solid rgba(59,130,246,0.28);
+      border-radius:18px;
+      padding:22px 36px;
+      position:relative;
+      overflow:hidden;
+      box-shadow:0 0 40px rgba(59,130,246,0.1),inset 0 1px 0 rgba(255,255,255,0.06);
+    ">
+      <!-- glow orb inside card -->
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:300px;height:120px;background:radial-gradient(ellipse,rgba(59,130,246,0.12),transparent 70%);pointer-events:none;"></div>
+
+      <div style="position:relative;z-index:1;">
+        <div style="font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(96,165,250,0.7);margin-bottom:10px;font-weight:600;">
+          ✦ &nbsp; Designed &amp; Developed by &nbsp; ✦
+        </div>
+
+        <div style="
+          font-family:'Playfair Display',serif;
+          font-size:clamp(1.3rem,2.5vw,1.7rem);
+          font-weight:700;
+          background:linear-gradient(135deg,#93c5fd,#60a5fa,#38bdf8,#60a5fa,#93c5fd);
+          background-size:200% auto;
+          -webkit-background-clip:text;
+          -webkit-text-fill-color:transparent;
+          animation:credit-shine 4s linear infinite;
+          letter-spacing:0.03em;
+          line-height:1.2;
+          margin-bottom:6px;
+        ">Biswajit Bhattacharjee</div>
+
+        <div style="font-size:13px;color:rgba(148,163,184,0.85);font-weight:400;letter-spacing:0.04em;line-height:1.6;">
+          Chief Manager (Liaison) &nbsp;·&nbsp; SBI LHO Guwahati
+        </div>
+
+        <div style="
+          display:flex;align-items:center;justify-content:center;gap:8px;
+          margin-top:14px;
+        ">
+          <div style="height:1px;width:40px;background:linear-gradient(to right,transparent,rgba(59,130,246,0.5));"></div>
+          <div style="font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(96,165,250,0.5);">OTC Guest House · Guwahati</div>
+          <div style="height:1px;width:40px;background:linear-gradient(to left,transparent,rgba(59,130,246,0.5));"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div><!-- end #app-page -->
+
+<script>
+/* ══════════════════════════════════════════════════════
+   LOGIN LOGIC
+══════════════════════════════════════════════════════ */
+const USERS = {
+  'admin':   { pass:'otc@2026', label:'Administrator', initials:'AD' },
+  'manager': { pass:'manager@1', label:'Manager',       initials:'MG' },
+  'otc':     { pass:'guesthouse', label:'OTC Staff',    initials:'OT' },
+};
+
+function doLogin(){
+  const user = document.getElementById('inp-user').value.trim().toLowerCase();
+  const pass = document.getElementById('inp-pass').value;
+  const errEl = document.getElementById('login-err');
+  const errMsg = document.getElementById('login-err-msg');
+  errEl.classList.remove('show');
+
+  if(!user || !pass){ errMsg.textContent='Please enter both username and password.'; errEl.classList.add('show'); return; }
+  const record = USERS[user];
+  if(!record || record.pass !== pass){ errMsg.textContent='Invalid username or password. Please try again.'; errEl.classList.add('show'); return; }
+
+  document.getElementById('user-label').textContent = record.label;
+  document.getElementById('user-avatar').textContent = record.initials;
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app-page').style.display = 'block';
+  loadData();
+}
+
+function doLogout(){
+  document.getElementById('inp-user').value = '';
+  document.getElementById('inp-pass').value = '';
+  document.getElementById('login-err').classList.remove('show');
+  document.getElementById('app-page').style.display = 'none';
+  document.getElementById('login-page').style.display = 'flex';
+}
+
+// Allow Enter key on login inputs
+document.addEventListener('keydown', e => {
+  if(e.key==='Enter' && document.getElementById('login-page').style.display !== 'none') doLogin();
+});
+
+/* ══════════════════════════════════════════════════════
+   ALL ORIGINAL CALCULATIONS — UNCHANGED
+══════════════════════════════════════════════════════ */
+const PROXY_2025='https://script.google.com/macros/s/AKfycbzHX1s7Zscb5SlnYr7PXnCk0xU1rWOk0cgU6SqL79r1k2sJdupkNNanInV3lHTPzpJOQw/exec';
+const PROXY_2026='https://script.google.com/macros/s/AKfycbwdOCdmWpU_XG4ROAHiSYPT_rpfnwya77-8KwOmKXZPX_sKnpjSIeOJGH-2jzW38aCq8Q/exec';
+const PROXY_2027='https://script.google.com/macros/s/AKfycbyjP5cvkr1W0iGzfeOLnMtbPp-uK27F5gfvKEU_OzyeqLIdElZpUDclzMkUMTtJj7uhQw/exec';
+
+const YCFG={
+  '2025':{proxy:PROXY_2025,months:['Jan 25','Feb 25','Mar 25','Apr 25','May 25','Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25']},
+  '2026':{proxy:PROXY_2026,months:['Jan 26','Feb 26','Mar 26','Apr 26','May 26','Jun 26','Jul 26','Aug 26','Sep 26','Oct 26','Nov 26','Dec 26']},
+  '2027':{proxy:PROXY_2027,months:['Jan 27','Feb 27','Mar 27','Apr 27','May 27','Jun 27','Jul 27','Aug 27','Sep 27','Oct 27','Nov 27','Dec 27']}
+};
+const SKIP=['DO','SBIOA','R-NO','R NO','ROOM NO','','NIL','VACANT','N/A','NA','-','--'];
+const TOTAL_ROOMS=36;
+
+let allBk=[],gMap={},rPersonMap={},rDateMap={},rMonthMap={},occMap={},loadedM=0,curTab='s',curYear='2026';
+
+function extractAmount(raw){
+  if(!raw)return 0;
+  const m=raw.toString().match(/\((\d+)\)/);
+  return m?parseInt(m[1]):0;
+}
+
+function cleanName(raw){
+  if(!raw)return null;
+  let n=raw.toString().trim().replace(/\(\d+\)/g,'').replace(/\b\d+\b/g,'').replace(/[^a-zA-Z\s\.]/g,'').replace(/\s+/g,' ').trim().toUpperCase();
+  return(n.length<3||SKIP.includes(n))?null:n;
+}
+
+function dbg(m){const el=document.getElementById('dl');if(el){el.innerHTML+='<div>'+m+'</div>';el.scrollTop=el.scrollHeight;}}
+function setStatus(t,m){document.getElementById('dot').className='dot '+t;document.getElementById('st').textContent=m;}
+
+function selectYear(yr){
+  const cfg=YCFG[yr];
+  if(!cfg||!cfg.proxy){alert('Proxy not configured for '+yr+'.');return;}
+  curYear=yr;
+  document.querySelectorAll('.yr-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('yr-'+yr).classList.add('active');
+  loadData();
+}
+
+async function fetchSheet(month,proxy){
+  const resp=await fetch(proxy+'?sheet='+encodeURIComponent(month));
+  if(!resp.ok)throw new Error('HTTP '+resp.status);
+  const j=await resp.json();
+  if(j.error)throw new Error(j.error);
+  const bk=[];
+  if(!j||j.length<2)return bk;
+  const hdr=j[0];
+  const colDateMap={};
+  hdr.forEach((h,ci)=>{
+    if(ci===0)return;
+    if(!h&&h!==0)return;
+    let dStr=h.toString().trim();
+    if(!dStr)return;
+    if(dStr.includes('T')&&dStr.includes('Z')){
+      try{
+        const d=new Date(dStr);
+        const istMs=d.getTime()+(5.5*60*60*1000);
+        const istDate=new Date(istMs);
+        const day=istDate.getUTCDate();
+        const mon=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][istDate.getUTCMonth()];
+        const yr=istDate.getUTCFullYear();
+        dStr=day+' '+mon+' '+yr;
+      }catch(e){}
+    }
+    colDateMap[ci]=dStr;
+  });
+  dbg('📅 '+month+' colDateMap sample: col1='+colDateMap[1]+' col2='+colDateMap[2]+' col3='+colDateMap[3]);
+  const maxRow=Math.min(j.length,45);
+  for(let r=1;r<maxRow;r++){
+    const row=j[r];
+    const rawRoom=row[0]?row[0].toString().trim():'';
+    const baseRoom=rawRoom.replace(/[AB]$/i,'').trim();
+    for(let c=1;c<row.length;c++){
+      if(!colDateMap[c])continue;
+      const raw=row[c]?row[c].toString().trim():'';
+      if(!raw)continue;
+      const stripped=raw.replace(/\(\d+\)/g,'').replace(/\b\d+\b/g,'').replace(/[^a-zA-Z\s]/g,'').trim().toUpperCase();
+      if(stripped==='DO')continue;
+      const amount=extractAmount(raw);
+      if(amount===0)continue;
+      const name=cleanName(raw);
+      if(!name)continue;
+      const date=colDateMap[c];
+      bk.push({name,date,month,amount,room:baseRoom});
+    }
+  }
+  return bk;
+}
+
+async function loadData(){
+  const cfg=YCFG[curYear];
+  allBk=[];gMap={};rPersonMap={};rDateMap={};rMonthMap={};occMap={};loadedM=0;
+  document.getElementById('dl').innerHTML='';
+  setStatus('loading','Fetching '+curYear+' data...');
+  const ri=document.getElementById('ri');ri.classList.add('spinning');
+  document.getElementById('tb').innerHTML='<tr><td colspan="5"><div class="empty"><div class="e-icon">⏳</div><h3>Loading...</h3><p>Fetching from Google Sheets</p></div></td></tr>';
+  let err=0;
+  for(const m of cfg.months){
+    try{
+      dbg('⏳ '+m);
+      const b=await fetchSheet(m,cfg.proxy);
+      allBk.push(...b);loadedM++;
+      dbg('✅ '+m+': '+b.length+' bookings');
+      setStatus('loading','Loaded '+loadedM+' / '+cfg.months.length+'...');
+    }catch(e){dbg('❌ '+m+': '+e.message);err++;}
+  }
+  allBk.forEach(b=>{
+    if(!gMap[b.name])gMap[b.name]=[];
+    gMap[b.name].push({date:b.date,month:b.month,amount:b.amount});
+    if(!rPersonMap[b.name])rPersonMap[b.name]=0;
+    rPersonMap[b.name]+=b.amount;
+    const dk=b.date+'||'+b.month;
+    if(!rDateMap[dk])rDateMap[dk]={date:b.date,month:b.month,total:0,count:0};
+    rDateMap[dk].total+=b.amount;rDateMap[dk].count++;
+    if(!rMonthMap[b.month])rMonthMap[b.month]={month:b.month,total:0,count:0};
+    rMonthMap[b.month].total+=b.amount;rMonthMap[b.month].count++;
+    if(!occMap[dk])occMap[dk]={date:b.date,month:b.month,rooms:[]};
+    if(b.room&&!occMap[dk].rooms.includes(b.room))occMap[dk].rooms.push(b.room);
+  });
+  ri.classList.remove('spinning');
+  const total=allBk.length,guests=Object.keys(gMap).length;
+  const top=guests>0?Math.max(...Object.values(gMap).map(v=>v.length)):0;
+  document.getElementById('s1').textContent=total.toLocaleString();
+  document.getElementById('s2').textContent=guests.toLocaleString();
+  document.getElementById('s3').textContent=loadedM;
+  document.getElementById('s4').textContent=top;
+  setStatus('done','✅ '+total+' bookings · '+guests+' guests · '+loadedM+' months'+(err?' · '+err+' failed':''));
+  renderSummary('');
+}
+
+function renderSummary(filter){
+  const total=allBk.length;
+  let sorted=Object.entries(gMap).map(([name,bk])=>({name,count:bk.length,months:[...new Set(bk.map(b=>b.month))]})).sort((a,b)=>b.count-a.count);
+  if(filter)sorted=sorted.filter(g=>g.name.toLowerCase().includes(filter.toLowerCase()));
+  if(!sorted.length){document.getElementById('tb').innerHTML='<tr><td colspan="5"><div class="empty"><div class="e-icon">🔍</div><h3>'+(filter?'No results for "'+filter+'"':'No data')+'</h3></div></td></tr>';return;}
+  document.getElementById('tb').innerHTML=sorted.map((g,i)=>{
+    const r=i+1,rc=r===1?'r1':r===2?'r2':r===3?'r3':'rn';
+    const medal=r<=3?['🥇','🥈','🥉'][r-1]:r;
+    const pct=total>0?((g.count/total)*100).toFixed(1):0;
+    const chips=g.months.map(m=>'<span class="chip">'+m+'</span>').join('');
+    return '<tr onclick="showDetail(\''+g.name.replace(/'/g,"\\'")+'\');switchTab(\'d\')">'
+      +'<td><span class="rank '+rc+'">'+medal+'</span></td>'
+      +'<td style="font-weight:600;">'+g.name+'</td>'
+      +'<td><span class="cnt">🏠 '+g.count+'</span></td>'
+      +'<td><div class="chips">'+chips+'</div></td>'
+      +'<td><div class="bar-w"><div class="bar-bg"><div class="bar-f" style="width:'+Math.min(parseFloat(pct)*5,100)+'%"></div></div><span class="pct">'+pct+'%</span></div></td>'
+      +'</tr>';
+  }).join('');
+}
+
+function showDetail(name){
+  const bk=gMap[name];if(!bk)return;
+  const cfg=YCFG[curYear];
+  const sorted=[...bk].sort((a,b)=>cfg.months.indexOf(a.month)-cfg.months.indexOf(b.month));
+  const uMonths=[...new Set(bk.map(b=>b.month))];
+  const byM={};sorted.forEach(b=>{if(!byM[b.month])byM[b.month]=[];byM[b.month].push(b.date);});
+  const init=name.split(' ').map(w=>w[0]).slice(0,2).join('');
+  let html='<div class="d-hero"><div class="d-av">'+init+'</div>'
+    +'<div class="d-info"><h2>'+name+'</h2><p>'+curYear+' Booking History</p></div>'
+    +'<div class="d-stats"><div class="ds"><div class="ds-v">'+bk.length+'</div><div class="ds-l">Total Stays</div></div>'
+    +'<div class="ds"><div class="ds-v">'+uMonths.length+'</div><div class="ds-l">Months</div></div></div></div>'
+    +'<div class="bk-grid">';
+  Object.entries(byM).forEach(([month,dates])=>{
+    html+='<div style="grid-column:1/-1"><div class="mhdr">📅 '+month+' &nbsp;·&nbsp; '+dates.length+' stay'+(dates.length>1?'s':'')+'</div></div>';
+    dates.forEach(d=>{html+='<div class="bk"><div><div class="bk-d">'+d+'</div><div class="bk-m">'+month+'</div></div></div>';});
+  });
+  html+='</div>';
+  document.getElementById('dc').innerHTML=html;
+}
+
+function switchTab(t){
+  curTab=t;
+  document.getElementById('vs').style.display=t==='s'?'block':'none';
+  document.getElementById('vd').style.display=t==='d'?'block':'none';
+  document.getElementById('vr').style.display=t==='r'?'block':'none';
+  document.getElementById('vo').style.display=t==='o'?'block':'none';
+  ['s','d','r','o'].forEach(x=>document.getElementById('t'+x).className='tab'+(t===x?' active':''));
+  if(t==='r')showRevenue('person');
+  if(t==='o')showOccupancy();
+}
+
+function fmtINR(n){return '₹'+n.toLocaleString('en-IN');}
+
+function setRevBtn(active){
+  ['person','month','date','dateq'].forEach(k=>{
+    document.getElementById('rs-'+k).className='rev-tab'+(k===active?' active':'');
+  });
+}
+
+function showRevenue(view){
+  setRevBtn(view);
+  const cfg=YCFG[curYear];
+  let html='';
+
+  if(view==='person'){
+    const sorted=Object.entries(rPersonMap).sort((a,b)=>b[1]-a[1]);
+    const grandTotal=sorted.reduce((s,[,v])=>s+v,0);
+    html='<div style="margin-bottom:14px;display:flex;gap:12px;flex-wrap:wrap;">'
+      +'<div class="stat bl" style="flex:1;min-width:140px;"><div class="stat-accent"></div><div class="stat-v">'+fmtINR(grandTotal)+'</div><div class="stat-l">Total Revenue</div></div>'
+      +'<div class="stat gn" style="flex:1;min-width:140px;"><div class="stat-accent"></div><div class="stat-v">'+sorted.length+'</div><div class="stat-l">Paying Guests</div></div>'
+      +'</div>';
+    html+='<div class="tw"><table><thead><tr><th>#</th><th>Guest Name</th><th>Total Paid</th><th>No. of Stays</th><th>Avg per Stay</th><th>Share</th></tr></thead><tbody>';
+    sorted.forEach(([name,total],i)=>{
+      const stays=gMap[name]?gMap[name].length:0;
+      const avg=stays>0?Math.round(total/stays):0;
+      const pct=grandTotal>0?((total/grandTotal)*100).toFixed(1):0;
+      const r=i+1,rc=r===1?'r1':r===2?'r2':r===3?'r3':'rn';
+      const medal=r<=3?['🥇','🥈','🥉'][r-1]:r;
+      html+='<tr>'
+        +'<td><span class="rank '+rc+'">'+medal+'</span></td>'
+        +'<td style="font-weight:600;">'+name+'</td>'
+        +'<td style="color:#4ade80;font-weight:700;">'+fmtINR(total)+'</td>'
+        +'<td><span class="cnt">🏠 '+stays+'</span></td>'
+        +'<td style="color:#94a3b8;">'+fmtINR(avg)+'</td>'
+        +'<td><div class="bar-w"><div class="bar-bg"><div class="bar-f" style="width:'+Math.min(parseFloat(pct)*5,100)+'%;background:linear-gradient(90deg,#22c55e,#10b981);"></div></div><span class="pct">'+pct+'%</span></div></td>'
+        +'</tr>';
+    });
+    html+='</tbody></table></div>';
+  }
+
+  else if(view==='month'){
+    const sorted=Object.entries(rMonthMap).sort((a,b)=>cfg.months.indexOf(a[0])-cfg.months.indexOf(b[0]));
+    const grandTotal=sorted.reduce((s,[,v])=>s+v.total,0);
+    const maxVal=sorted.reduce((m,[,v])=>Math.max(m,v.total),0);
+    html='<div style="margin-bottom:14px;display:flex;gap:12px;flex-wrap:wrap;">'
+      +'<div class="stat bl" style="flex:1;min-width:140px;"><div class="stat-accent"></div><div class="stat-v">'+fmtINR(grandTotal)+'</div><div class="stat-l">Total Revenue</div></div>'
+      +'<div class="stat am" style="flex:1;min-width:140px;"><div class="stat-accent"></div><div class="stat-v">'+sorted.length+'</div><div class="stat-l">Active Months</div></div>'
+      +'</div>';
+    html+='<div class="tw"><table><thead><tr><th>Month</th><th>Total Revenue</th><th>Bookings</th><th>Avg per Booking</th><th>Visual</th></tr></thead><tbody>';
+    sorted.forEach(([month,data])=>{
+      const avg=data.count>0?Math.round(data.total/data.count):0;
+      const barW=maxVal>0?((data.total/maxVal)*100).toFixed(0):0;
+      html+='<tr onclick="showMonthDetail(\''+month.replace(/'/g,"\\'")+'\')">'
+        +'<td style="font-weight:700;">📅 '+month+' <span style="font-size:11px;color:#60a5fa;font-weight:600;">· click to view</span></td>'
+        +'<td style="color:#4ade80;font-weight:700;font-size:15px;">'+fmtINR(data.total)+'</td>'
+        +'<td><span class="cnt">🏠 '+data.count+'</span></td>'
+        +'<td style="color:#94a3b8;">'+fmtINR(avg)+'</td>'
+        +'<td style="min-width:120px;"><div class="bar-bg" style="height:8px;border-radius:4px;"><div class="bar-f" style="width:'+barW+'%;height:100%;background:linear-gradient(90deg,#f59e0b,#f97316);border-radius:4px;"></div></div></td>'
+        +'</tr>';
+    });
+    html+='</tbody></table></div>';
+    html+='<div id="month-detail" style="margin-top:16px;"><div class="empty"><div class="e-icon">📅</div><h3>Select a month</h3><p>Click any month row above to view detailed revenue breakup</p></div></div>';
+  }
+
+  else if(view==='date'){
+    const sorted=Object.values(rDateMap).sort((a,b)=>b.total-a.total);
+    const grandTotal=sorted.reduce((s,v)=>s+v.total,0);
+    html='<div style="margin-bottom:14px;display:flex;gap:12px;flex-wrap:wrap;">'
+      +'<div class="stat bl" style="flex:1;min-width:140px;"><div class="stat-accent"></div><div class="stat-v">'+fmtINR(grandTotal)+'</div><div class="stat-l">Total Revenue</div></div>'
+      +'<div class="stat pu" style="flex:1;min-width:140px;"><div class="stat-accent"></div><div class="stat-v">'+sorted.length+'</div><div class="stat-l">Active Dates</div></div>'
+      +'</div>';
+    html+='<div class="tw"><table><thead><tr><th>#</th><th>Date</th><th>Month</th><th>Revenue</th><th>Guests</th></tr></thead><tbody>';
+    sorted.slice(0,100).forEach((d,i)=>{
+      const r=i+1,rc=r===1?'r1':r===2?'r2':r===3?'r3':'rn';
+      html+='<tr>'
+        +'<td><span class="rank '+rc+'">'+r+'</span></td>'
+        +'<td style="font-weight:600;">'+d.date+'</td>'
+        +'<td><span class="chip">'+d.month+'</span></td>'
+        +'<td style="color:#4ade80;font-weight:700;">'+fmtINR(d.total)+'</td>'
+        +'<td><span class="cnt">👤 '+d.count+'</span></td>'
+        +'</tr>';
+    });
+    html+='</tbody></table></div>';
+    if(sorted.length>100)html+='<div style="text-align:center;padding:12px;font-size:12px;color:var(--tx3);">Showing top 100 of '+sorted.length+' dates</div>';
+  }
+
+  else if(view==='dateq'){
+    const allDates=Object.values(rDateMap).sort((a,b)=>{
+      const mi=cfg.months.indexOf(a.month)-cfg.months.indexOf(b.month);
+      if(mi!==0)return mi;
+      const dayA=parseInt(a.date.toString().match(/\d+/)?.[0]||0);
+      const dayB=parseInt(b.date.toString().match(/\d+/)?.[0]||0);
+      return dayA-dayB;
+    });
+    const options=allDates.map(d=>'<option value="'+d.date+'||'+d.month+'">'+d.date+' ('+d.month+')</option>').join('');
+    html='<div style="margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'
+      +'<label style="font-size:13px;color:var(--tx2);font-weight:600;">Select Date:</label>'
+      +'<select id="date-select" class="nice" onchange="showDateDetail()" style="flex:1;min-width:200px;max-width:340px;">'
+      +'<option value="">-- Choose a date --</option>'
+      +options
+      +'</select></div>'
+      +'<div id="date-detail"></div>';
+  }
+
+  document.getElementById('rev-content').innerHTML=html;
+  if(view==='dateq'&&Object.keys(rDateMap).length>0){
+    const sel=document.getElementById('date-select');
+    if(sel&&sel.options.length>1){sel.selectedIndex=1;showDateDetail();}
+  }
+}
+
+function showMonthDetail(month){
+  const monthBookings=allBk.filter(b=>b.month===month);
+  const holder=document.getElementById('month-detail');
+  if(!holder)return;
+  if(monthBookings.length===0){holder.innerHTML='<div class="empty"><div class="e-icon">📅</div><h3>No details found</h3><p>No revenue entries for '+month+'</p></div>';return;}
+  const guestMap={},dateMap={};
+  monthBookings.forEach(b=>{
+    if(!guestMap[b.name])guestMap[b.name]={name:b.name,total:0,count:0};
+    guestMap[b.name].total+=b.amount;guestMap[b.name].count++;
+    if(!dateMap[b.date])dateMap[b.date]={date:b.date,total:0,count:0};
+    dateMap[b.date].total+=b.amount;dateMap[b.date].count++;
+  });
+  const guestRows=Object.values(guestMap).sort((a,b)=>b.total-a.total);
+  const dateRows=Object.values(dateMap).sort((a,b)=>b.total-a.total);
+  const totalRevenue=monthBookings.reduce((s,b)=>s+b.amount,0);
+  const avgBooking=monthBookings.length?Math.round(totalRevenue/monthBookings.length):0;
+  let html='<div class="d-hero" style="margin-top:4px;">'
+    +'<div class="d-av">₹</div>'
+    +'<div class="d-info"><h2>'+month+' Revenue Details</h2><p>Detailed breakup for the selected month</p></div>'
+    +'<div class="d-stats">'
+      +'<div class="ds"><div class="ds-v">'+fmtINR(totalRevenue)+'</div><div class="ds-l">Total Revenue</div></div>'
+      +'<div class="ds"><div class="ds-v">'+monthBookings.length+'</div><div class="ds-l">Bookings</div></div>'
+      +'<div class="ds"><div class="ds-v">'+guestRows.length+'</div><div class="ds-l">Guests</div></div>'
+      +'<div class="ds"><div class="ds-v">'+dateRows.length+'</div><div class="ds-l">Dates</div></div>'
+    +'</div>'
+  +'</div>';
+  html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">';
+  html+='<div><div style="font-size:13px;font-weight:700;color:var(--tx2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.07em;">Guest-wise Revenue</div>'
+    +'<div class="tw"><table><thead><tr><th>#</th><th>Guest</th><th>Revenue</th><th>Stays</th></tr></thead><tbody>';
+  guestRows.forEach((g,i)=>{html+='<tr><td style="color:var(--tx3);font-size:12px;">'+(i+1)+'</td><td style="font-weight:600;">'+g.name+'</td><td style="color:#4ade80;font-weight:700;">'+fmtINR(g.total)+'</td><td><span class="cnt">🏠 '+g.count+'</span></td></tr>';});
+  html+='</tbody></table></div></div>';
+  html+='<div><div style="font-size:13px;font-weight:700;color:var(--tx2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.07em;">Date-wise Revenue</div>'
+    +'<div class="tw"><table><thead><tr><th>#</th><th>Date</th><th>Revenue</th><th>Guests</th></tr></thead><tbody>';
+  dateRows.forEach((d,i)=>{html+='<tr><td style="color:var(--tx3);font-size:12px;">'+(i+1)+'</td><td style="font-weight:600;">'+d.date+'</td><td style="color:#4ade80;font-weight:700;">'+fmtINR(d.total)+'</td><td><span class="cnt">👤 '+d.count+'</span></td></tr>';});
+  html+='</tbody></table></div></div></div>';
+  html+='<div style="margin-top:16px;"><div style="font-size:13px;font-weight:700;color:var(--tx2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.07em;">Booking-level Entries</div>'
+    +'<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">'
+      +'<div class="stat gn" style="flex:1;min-width:160px;"><div class="stat-accent"></div><div class="stat-v">'+fmtINR(avgBooking)+'</div><div class="stat-l">Avg per Booking</div></div>'
+      +'<div class="stat pu" style="flex:1;min-width:160px;"><div class="stat-accent"></div><div class="stat-v">'+dateRows.length+'</div><div class="stat-l">Revenue Dates</div></div>'
+    +'</div>'
+    +'<div class="tw"><table><thead><tr><th>#</th><th>Date</th><th>Guest</th><th>Amount</th></tr></thead><tbody>';
+  const sortedBookings=[...monthBookings].sort((a,b)=>{
+    const dayA=parseInt(a.date.toString().match(/\d+/)?.[0]||0);
+    const dayB=parseInt(b.date.toString().match(/\d+/)?.[0]||0);
+    if(dayA!==dayB)return dayA-dayB;
+    return a.name.localeCompare(b.name);
+  });
+  sortedBookings.forEach((b,i)=>{html+='<tr><td style="color:var(--tx3);font-size:12px;">'+(i+1)+'</td><td style="font-weight:600;">'+b.date+'</td><td>'+b.name+'</td><td style="color:#4ade80;font-weight:700;">'+fmtINR(b.amount)+'</td></tr>';});
+  html+='</tbody></table></div></div>';
+  holder.innerHTML=html;
+  holder.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function showDateDetail(){
+  const sel=document.getElementById('date-select');
+  if(!sel||!sel.value)return;
+  const dk=sel.value;
+  const dData=rDateMap[dk];
+  if(!dData){document.getElementById('date-detail').innerHTML='';return;}
+  const bkForDate=allBk.filter(b=>(b.date+'||'+b.month)===dk);
+  const totalAmt=bkForDate.reduce((s,b)=>s+b.amount,0);
+  let html='<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">'
+    +'<div class="stat bl" style="flex:1;min-width:120px;"><div class="stat-accent"></div><div class="stat-v">'+fmtINR(totalAmt)+'</div><div class="stat-l">Total Collected</div></div>'
+    +'<div class="stat gn" style="flex:1;min-width:120px;"><div class="stat-accent"></div><div class="stat-v">'+bkForDate.length+'</div><div class="stat-l">Guests</div></div>'
+    +'</div>';
+  html+='<div class="tw"><table><thead><tr><th>#</th><th>Guest Name</th><th>Amount Paid</th></tr></thead><tbody>';
+  bkForDate.forEach((b,i)=>{html+='<tr><td style="color:var(--tx3);font-size:12px;">'+(i+1)+'</td><td style="font-weight:600;">'+b.name+'</td><td style="color:#4ade80;font-weight:700;font-size:15px;">'+fmtINR(b.amount)+'</td></tr>';});
+  html+='<tr style="border-top:2px solid var(--bd2);"><td colspan="2" style="font-weight:700;color:var(--tx);text-align:right;padding-right:8px;">TOTAL</td><td style="color:#22c55e;font-weight:800;font-size:16px;">'+fmtINR(totalAmt)+'</td></tr>';
+  html+='</tbody></table></div>';
+  document.getElementById('date-detail').innerHTML=html;
+}
+
+function handleSearch(val){
+  if(curTab==='s'){renderSummary(val);}
+  else if(val.trim().length>=2){const m=Object.keys(gMap).find(n=>n.toLowerCase().includes(val.toLowerCase()));if(m)showDetail(m);}
+}
+
+function clearSearch(){
+  document.getElementById('si').value='';
+  renderSummary('');
+  document.getElementById('dc').innerHTML='<div class="empty"><div class="e-icon">🔍</div><h3>Search a guest</h3><p>Type a name above</p></div>';
+}
+
+function showOccupancy(){
+  const cfg=YCFG[curYear];
+  if(Object.keys(occMap).length===0){document.getElementById('occ-content').innerHTML='<div class="empty"><div class="e-icon">🏠</div><h3>No occupancy data</h3><p>Click Refresh to load data first</p></div>';return;}
+  const dateOcc=Object.values(occMap).map(d=>({
+    date:d.date,month:d.month,
+    rooms:d.rooms.length,
+    pct:Math.round((d.rooms.length/TOTAL_ROOMS)*100)
+  })).sort((a,b)=>{
+    const mi=cfg.months.indexOf(a.month)-cfg.months.indexOf(b.month);
+    if(mi!==0)return mi;
+    const dayA=parseInt(a.date.toString().match(/\d+/)?.[0]||0);
+    const dayB=parseInt(b.date.toString().match(/\d+/)?.[0]||0);
+    return dayA-dayB;
+  });
+  const monthOcc={};
+  cfg.months.forEach(m=>{monthOcc[m]={month:m,totalPct:0,days:0,maxRooms:0};});
+  dateOcc.forEach(d=>{
+    if(!monthOcc[d.month])monthOcc[d.month]={month:d.month,totalPct:0,days:0,maxRooms:0};
+    monthOcc[d.month].totalPct+=d.pct;monthOcc[d.month].days++;
+    monthOcc[d.month].maxRooms=Math.max(monthOcc[d.month].maxRooms,d.rooms);
+  });
+  const avgOcc=dateOcc.length>0?Math.round(dateOcc.reduce((s,d)=>s+d.pct,0)/dateOcc.length):0;
+  const maxDay=dateOcc.reduce((m,d)=>d.rooms>m.rooms?d:m,{rooms:0});
+  const minDay=dateOcc.filter(d=>d.rooms>0).reduce((m,d)=>d.rooms<m.rooms?d:m,{rooms:999});
+  function occColor(pct){if(pct>=80)return '#ef4444';if(pct>=60)return '#f97316';if(pct>=40)return '#f59e0b';if(pct>=20)return '#22c55e';return '#3b82f6';}
+  function occLabel(pct){if(pct>=80)return 'Very High';if(pct>=60)return 'High';if(pct>=40)return 'Moderate';if(pct>=20)return 'Low';return 'Very Low';}
+  let html='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:24px;">'
+    +'<div class="stat bl"><div class="stat-accent"></div><div class="stat-v">'+TOTAL_ROOMS+'</div><div class="stat-l">Total Rooms</div></div>'
+    +'<div class="stat gn"><div class="stat-accent"></div><div class="stat-v">'+avgOcc+'%</div><div class="stat-l">Avg Occupancy</div></div>'
+    +'<div class="stat am"><div class="stat-accent"></div><div class="stat-v">'+(maxDay.rooms||0)+'</div><div class="stat-l">Peak Rooms ('+(maxDay.date||'—')+')</div></div>'
+    +'<div class="stat pu"><div class="stat-accent"></div><div class="stat-v">'+(minDay.rooms===999?0:minDay.rooms||0)+'</div><div class="stat-l">Min Rooms ('+(minDay.date||'—')+')</div></div>'
+    +'</div>';
+  html+='<div style="font-size:13px;font-weight:700;color:var(--tx2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.07em;">Monthly Occupancy</div>';
+  html+='<div class="tw" style="margin-bottom:24px;"><table><thead><tr><th>Month</th><th>Avg Occupancy</th><th>Peak Rooms</th><th>Days Tracked</th><th>Level</th></tr></thead><tbody>';
+  cfg.months.forEach(m=>{
+    const mo=monthOcc[m];
+    if(!mo||mo.days===0){html+='<tr><td style="font-weight:700;">'+m+'</td><td colspan="4" style="color:var(--tx3);">No data</td></tr>';return;}
+    const avgPct=Math.round(mo.totalPct/mo.days);
+    const col=occColor(avgPct);
+    html+='<tr>'
+      +'<td style="font-weight:700;">📅 '+m+'</td>'
+      +'<td><div style="display:flex;align-items:center;gap:8px;"><div style="flex:1;height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;min-width:80px;"><div style="height:100%;width:'+avgPct+'%;background:'+col+';border-radius:4px;"></div></div><span style="font-weight:700;color:'+col+';">'+avgPct+'%</span></div></td>'
+      +'<td><span class="cnt" style="background:rgba(59,130,246,0.1);color:#60a5fa;">🏠 '+mo.maxRooms+' / '+TOTAL_ROOMS+'</span></td>'
+      +'<td style="color:var(--tx3);">'+mo.days+' days</td>'
+      +'<td><span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:'+col+'22;color:'+col+';">'+occLabel(avgPct)+'</span></td>'
+      +'</tr>';
+  });
+  html+='</tbody></table></div>';
+  html+='<div style="font-size:13px;font-weight:700;color:var(--tx2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.07em;">Daily Occupancy</div>';
+  html+='<div class="tw"><table><thead><tr><th>Date</th><th>Month</th><th>Rooms Occupied</th><th>Occupancy %</th><th>Level</th></tr></thead><tbody>';
+  dateOcc.forEach(d=>{
+    const col=occColor(d.pct);
+    html+='<tr>'
+      +'<td style="font-weight:600;">'+d.date+'</td>'
+      +'<td><span class="chip">'+d.month+'</span></td>'
+      +'<td><span class="cnt" style="background:rgba(59,130,246,0.1);color:#60a5fa;">🏠 '+d.rooms+' / '+TOTAL_ROOMS+'</span></td>'
+      +'<td><div style="display:flex;align-items:center;gap:8px;"><div style="flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;min-width:80px;"><div style="height:100%;width:'+d.pct+'%;background:'+col+';border-radius:3px;"></div></div><span style="font-weight:700;color:'+col+';min-width:36px;">'+d.pct+'%</span></div></td>'
+      +'<td><span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:'+col+'22;color:'+col+';">'+occLabel(d.pct)+'</span></td>'
+      +'</tr>';
+  });
+  html+='</tbody></table></div>';
+  document.getElementById('occ-content').innerHTML=html;
+}
+</script>
+</body>
+</html>
