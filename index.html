@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OTC Guest House · Booking Analyser</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 
@@ -396,6 +397,32 @@ select.nice:focus{border-color:rgba(59,130,246,0.5);}
 /* CREDIT SHINE */
 @keyframes credit-shine{0%{background-position:0% center;}100%{background-position:200% center;}}
 
+/* EXCEL DOWNLOAD BUTTON */
+.btn-excel{
+  padding:9px 18px;border-radius:10px;
+  background:linear-gradient(135deg,rgba(21,128,61,0.25),rgba(22,163,74,0.18));
+  border:1px solid rgba(34,197,94,0.35);
+  color:#4ade80;font-family:var(--font);font-size:12px;font-weight:700;
+  cursor:pointer;transition:all 0.22s;
+  display:inline-flex;align-items:center;gap:6px;
+  letter-spacing:0.03em;backdrop-filter:blur(10px);
+}
+.btn-excel:hover{
+  background:linear-gradient(135deg,rgba(21,128,61,0.4),rgba(22,163,74,0.3));
+  border-color:rgba(34,197,94,0.6);
+  box-shadow:0 0 16px rgba(34,197,94,0.2);
+  transform:translateY(-1px);
+}
+.btn-excel:active{transform:translateY(0);}
+.btn-excel:disabled{opacity:0.35;cursor:not-allowed;transform:none;}
+
+.dl-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;
+  margin-bottom:14px;
+}
+.dl-bar-title{font-size:13px;color:var(--tx2);font-weight:600;}
+
 /* SCROLLBAR */
 ::-webkit-scrollbar{width:6px;height:6px;}
 ::-webkit-scrollbar-track{background:transparent;}
@@ -503,6 +530,10 @@ select.nice:focus{border-color:rgba(59,130,246,0.5);}
 
   <!-- TAB CONTENT -->
   <div id="vs">
+    <div class="dl-bar">
+      <span class="dl-bar-title" id="summary-dl-label">Guest Summary</span>
+      <button class="btn-excel" id="btn-dl-summary" onclick="downloadSummaryExcel()" disabled>⬇ Download Excel</button>
+    </div>
     <div class="tw">
       <table>
         <thead><tr><th>#</th><th>Guest Name</th><th>Total Stays</th><th>Months Visited</th><th>Share</th></tr></thead>
@@ -512,10 +543,18 @@ select.nice:focus{border-color:rgba(59,130,246,0.5);}
   </div>
 
   <div id="vd" style="display:none;">
+    <div class="dl-bar">
+      <span class="dl-bar-title" id="detail-dl-label">Guest Detail</span>
+      <button class="btn-excel" id="btn-dl-detail" onclick="downloadDetailExcel()" disabled>⬇ Download Excel</button>
+    </div>
     <div id="dc"><div class="empty"><div class="e-icon">🔍</div><h3>Search a guest</h3><p>Type a name in the search box above</p></div></div>
   </div>
 
   <div id="vo" style="display:none;">
+    <div class="dl-bar">
+      <span class="dl-bar-title">Occupancy Data</span>
+      <button class="btn-excel" id="btn-dl-occ" onclick="downloadOccupancyExcel()" disabled>⬇ Download Excel</button>
+    </div>
     <div id="occ-content"></div>
   </div>
 
@@ -525,6 +564,7 @@ select.nice:focus{border-color:rgba(59,130,246,0.5);}
       <button class="rev-tab" id="rs-month" onclick="showRevenue('month')">📅 Month-wise</button>
       <button class="rev-tab" id="rs-date" onclick="showRevenue('date')">📆 Date-wise</button>
       <button class="rev-tab" id="rs-dateq" onclick="showRevenue('dateq')">🔎 Date Query</button>
+      <button class="btn-excel" id="btn-dl-rev" onclick="downloadRevenueExcel()" disabled style="margin-left:auto;">⬇ Download Excel</button>
     </div>
     <div id="rev-content"></div>
   </div>
@@ -759,12 +799,15 @@ async function loadData(){
   document.getElementById('s4').textContent=top;
   setStatus('done','✅ '+total+' bookings · '+guests+' guests · '+loadedM+' months'+(err?' · '+err+' failed':''));
   renderSummary('');
+  updateDownloadButtons();
 }
 
 function renderSummary(filter){
   const total=allBk.length;
   let sorted=Object.entries(gMap).map(([name,bk])=>({name,count:bk.length,months:[...new Set(bk.map(b=>b.month))]})).sort((a,b)=>b.count-a.count);
   if(filter)sorted=sorted.filter(g=>g.name.toLowerCase().includes(filter.toLowerCase()));
+  const labelEl=document.getElementById('summary-dl-label');
+  if(labelEl) labelEl.textContent='Guest Summary · '+sorted.length+' guests'+(filter?' (filtered)':'');
   if(!sorted.length){document.getElementById('tb').innerHTML='<tr><td colspan="5"><div class="empty"><div class="e-icon">🔍</div><h3>'+(filter?'No results for "'+filter+'"':'No data')+'</h3></div></td></tr>';return;}
   document.getElementById('tb').innerHTML=sorted.map((g,i)=>{
     const r=i+1,rc=r===1?'r1':r===2?'r2':r===3?'r3':'rn';
@@ -782,6 +825,11 @@ function renderSummary(filter){
 }
 
 function showDetail(name){
+  curDetailGuest = name;
+  const detailBtn=document.getElementById('btn-dl-detail');
+  if(detailBtn) detailBtn.disabled=false;
+  const labelEl=document.getElementById('detail-dl-label');
+  if(labelEl) labelEl.textContent='Guest Detail · '+name;
   const bk=gMap[name];if(!bk)return;
   const cfg=YCFG[curYear];
   const sorted=[...bk].sort((a,b)=>cfg.months.indexOf(a.month)-cfg.months.indexOf(b.month));
@@ -809,12 +857,13 @@ function switchTab(t){
   document.getElementById('vo').style.display=t==='o'?'block':'none';
   ['s','d','r','o'].forEach(x=>document.getElementById('t'+x).className='tab'+(t===x?' active':''));
   if(t==='r')showRevenue('person');
-  if(t==='o')showOccupancy();
+  if(t==='o')showOccupancyWithBtn();
 }
 
 function fmtINR(n){return '₹'+n.toLocaleString('en-IN');}
 
 function setRevBtn(active){
+  curRevView = active;
   ['person','month','date','dateq'].forEach(k=>{
     document.getElementById('rs-'+k).className='rev-tab'+(k===active?' active':'');
   });
@@ -1005,7 +1054,214 @@ function clearSearch(){
   document.getElementById('dc').innerHTML='<div class="empty"><div class="e-icon">🔍</div><h3>Search a guest</h3><p>Type a name above</p></div>';
 }
 
-function showOccupancy(){
+/* ══════════════════════════════════════════════════════
+   EXCEL DOWNLOAD — SheetJS via CDN
+══════════════════════════════════════════════════════ */
+
+// Track current revenue view
+let curRevView = 'person';
+let curDetailGuest = null;
+
+// ── helpers ────────────────────────────────────────────
+function xlsxDownload(wb, filename){
+  XLSX.writeFile(wb, filename);
+}
+
+function xlsxSheet(data, sheetName){
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  return wb;
+}
+
+function safeYear(){ return curYear || '2026'; }
+
+function todayStr(){
+  const d=new Date();
+  return d.getDate()+'_'+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+'_'+d.getFullYear();
+}
+
+// ── 1. GUEST SUMMARY ──────────────────────────────────
+function downloadSummaryExcel(){
+  const total = allBk.length;
+  const sorted = Object.entries(gMap)
+    .map(([name,bk])=>({name,count:bk.length,months:[...new Set(bk.map(b=>b.month))]}))
+    .sort((a,b)=>b.count-a.count);
+  if(!sorted.length){ alert('No data to download.'); return; }
+
+  const rows = [['#','Guest Name','Total Stays','Months Visited','Share (%)']];
+  sorted.forEach((g,i)=>{
+    const pct = total>0 ? ((g.count/total)*100).toFixed(1) : '0.0';
+    rows.push([i+1, g.name, g.count, g.months.join(', '), pct]);
+  });
+  rows.push([]);
+  rows.push(['','Total Bookings', total]);
+  rows.push(['','Unique Guests', sorted.length]);
+  rows.push(['','Year', safeYear()]);
+  rows.push(['','Downloaded on', todayStr()]);
+
+  const wb = xlsxSheet(rows, 'Guest Summary');
+  xlsxDownload(wb, 'GuestSummary_'+safeYear()+'_'+todayStr()+'.xlsx');
+}
+
+// ── 2. GUEST DETAIL ───────────────────────────────────
+function downloadDetailExcel(){
+  if(!curDetailGuest || !gMap[curDetailGuest]){ alert('Please search and open a guest first.'); return; }
+  const name = curDetailGuest;
+  const bk = gMap[name];
+  const cfg = YCFG[curYear];
+  const sorted = [...bk].sort((a,b)=>cfg.months.indexOf(a.month)-cfg.months.indexOf(b.month));
+
+  const rows = [['Guest Name', name],['Year', safeYear()],[]];
+  rows.push(['#','Date','Month','Amount (₹)']);
+  sorted.forEach((b,i)=> rows.push([i+1, b.date, b.month, b.amount||'—']));
+  rows.push([]);
+  rows.push(['','Total Stays', bk.length]);
+  rows.push(['','Months Visited', [...new Set(bk.map(b=>b.month))].length]);
+  rows.push(['','Downloaded on', todayStr()]);
+
+  const wb = xlsxSheet(rows, name.substring(0,28));
+  xlsxDownload(wb, 'GuestDetail_'+name.replace(/\s+/g,'_').substring(0,30)+'_'+safeYear()+'.xlsx');
+}
+
+// ── 3. REVENUE ────────────────────────────────────────
+function downloadRevenueExcel(){
+  const cfg = YCFG[curYear];
+  let wb;
+
+  if(curRevView==='person'){
+    const sorted = Object.entries(rPersonMap).sort((a,b)=>b[1]-a[1]);
+    const grandTotal = sorted.reduce((s,[,v])=>s+v,0);
+    const rows = [['#','Guest Name','Total Paid (₹)','No. of Stays','Avg per Stay (₹)','Share (%)']];
+    sorted.forEach(([name,total],i)=>{
+      const stays = gMap[name]?gMap[name].length:0;
+      const avg = stays>0?Math.round(total/stays):0;
+      const pct = grandTotal>0?((total/grandTotal)*100).toFixed(1):0;
+      rows.push([i+1, name, total, stays, avg, pct]);
+    });
+    rows.push([]);
+    rows.push(['','Grand Total (₹)', grandTotal]);
+    rows.push(['','Year', safeYear()]);
+    rows.push(['','Downloaded on', todayStr()]);
+    wb = xlsxSheet(rows, 'Revenue Person-wise');
+    xlsxDownload(wb, 'Revenue_Person_'+safeYear()+'_'+todayStr()+'.xlsx');
+
+  } else if(curRevView==='month'){
+    const sorted = Object.entries(rMonthMap).sort((a,b)=>cfg.months.indexOf(a[0])-cfg.months.indexOf(b[0]));
+    const grandTotal = sorted.reduce((s,[,v])=>s+v.total,0);
+    const rows = [['Month','Total Revenue (₹)','Bookings','Avg per Booking (₹)']];
+    sorted.forEach(([month,data])=>{
+      const avg = data.count>0?Math.round(data.total/data.count):0;
+      rows.push([month, data.total, data.count, avg]);
+    });
+    rows.push([]);
+    rows.push(['Grand Total (₹)', grandTotal]);
+    rows.push(['Year', safeYear()]);
+    rows.push(['Downloaded on', todayStr()]);
+    wb = xlsxSheet(rows, 'Revenue Month-wise');
+    xlsxDownload(wb, 'Revenue_Month_'+safeYear()+'_'+todayStr()+'.xlsx');
+
+  } else if(curRevView==='date'){
+    const sorted = Object.values(rDateMap).sort((a,b)=>b.total-a.total);
+    const grandTotal = sorted.reduce((s,v)=>s+v.total,0);
+    const rows = [['#','Date','Month','Revenue (₹)','Guests']];
+    sorted.forEach((d,i)=> rows.push([i+1, d.date, d.month, d.total, d.count]));
+    rows.push([]);
+    rows.push(['','Grand Total (₹)', grandTotal]);
+    rows.push(['','Active Dates', sorted.length]);
+    rows.push(['','Year', safeYear()]);
+    rows.push(['','Downloaded on', todayStr()]);
+    wb = xlsxSheet(rows, 'Revenue Date-wise');
+    xlsxDownload(wb, 'Revenue_Date_'+safeYear()+'_'+todayStr()+'.xlsx');
+
+  } else if(curRevView==='dateq'){
+    const sel = document.getElementById('date-select');
+    if(!sel||!sel.value){ alert('Please select a date first.'); return; }
+    const dk = sel.value;
+    const bkForDate = allBk.filter(b=>(b.date+'||'+b.month)===dk);
+    const totalAmt = bkForDate.reduce((s,b)=>s+b.amount,0);
+    const rows = [['Date Query','Selected: '+sel.options[sel.selectedIndex].text],[]];
+    rows.push(['#','Guest Name','Amount Paid (₹)']);
+    bkForDate.forEach((b,i)=> rows.push([i+1, b.name, b.amount]));
+    rows.push([]);
+    rows.push(['','Total Collected (₹)', totalAmt]);
+    rows.push(['','Guests', bkForDate.length]);
+    rows.push(['','Year', safeYear()]);
+    rows.push(['','Downloaded on', todayStr()]);
+    wb = xlsxSheet(rows, 'Date Revenue');
+    const dateLabel = (sel.options[sel.selectedIndex].text).replace(/[^a-zA-Z0-9]/g,'_');
+    xlsxDownload(wb, 'Revenue_Date_'+dateLabel+'_'+safeYear()+'.xlsx');
+  }
+}
+
+// ── 4. OCCUPANCY ──────────────────────────────────────
+function downloadOccupancyExcel(){
+  if(!Object.keys(occMap).length){ alert('No occupancy data. Click Refresh first.'); return; }
+  const cfg = YCFG[curYear];
+
+  // Sheet 1: Monthly summary
+  const monthOcc={};
+  cfg.months.forEach(m=>{monthOcc[m]={month:m,totalPct:0,days:0,maxRooms:0};});
+  Object.values(occMap).forEach(d=>{
+    const pct = Math.round((d.rooms.length/TOTAL_ROOMS)*100);
+    if(!monthOcc[d.month])monthOcc[d.month]={month:d.month,totalPct:0,days:0,maxRooms:0};
+    monthOcc[d.month].totalPct+=pct;
+    monthOcc[d.month].days++;
+    monthOcc[d.month].maxRooms=Math.max(monthOcc[d.month].maxRooms,d.rooms.length);
+  });
+  const monthRows=[['Month','Avg Occupancy (%)','Peak Rooms','Total Rooms','Days Tracked','Level']];
+  cfg.months.forEach(m=>{
+    const mo=monthOcc[m];
+    if(!mo||mo.days===0){monthRows.push([m,'—','—',TOTAL_ROOMS,0,'No Data']);return;}
+    const avgPct=Math.round(mo.totalPct/mo.days);
+    const level=avgPct>=80?'Very High':avgPct>=60?'High':avgPct>=40?'Moderate':avgPct>=20?'Low':'Very Low';
+    monthRows.push([m,avgPct,mo.maxRooms,TOTAL_ROOMS,mo.days,level]);
+  });
+
+  // Sheet 2: Daily detail
+  const dateOcc = Object.values(occMap).map(d=>({
+    date:d.date, month:d.month,
+    rooms:d.rooms.length,
+    pct:Math.round((d.rooms.length/TOTAL_ROOMS)*100),
+    roomList:d.rooms.join(', ')
+  })).sort((a,b)=>{
+    const mi=cfg.months.indexOf(a.month)-cfg.months.indexOf(b.month);
+    if(mi!==0)return mi;
+    return parseInt(a.date)-parseInt(b.date);
+  });
+  const dailyRows=[['Date','Month','Rooms Occupied','Total Rooms','Occupancy (%)','Room Numbers','Level']];
+  dateOcc.forEach(d=>{
+    const level=d.pct>=80?'Very High':d.pct>=60?'High':d.pct>=40?'Moderate':d.pct>=20?'Low':'Very Low';
+    dailyRows.push([d.date, d.month, d.rooms, TOTAL_ROOMS, d.pct, d.roomList, level]);
+  });
+
+  const wb = XLSX.utils.book_new();
+  const ws1 = XLSX.utils.aoa_to_sheet(monthRows);
+  const ws2 = XLSX.utils.aoa_to_sheet(dailyRows);
+  XLSX.utils.book_append_sheet(wb, ws1, 'Monthly Occupancy');
+  XLSX.utils.book_append_sheet(wb, ws2, 'Daily Occupancy');
+  xlsxDownload(wb, 'Occupancy_'+safeYear()+'_'+todayStr()+'.xlsx');
+}
+
+// ── ENABLE / DISABLE download buttons after load ─────
+function updateDownloadButtons(){
+  const hasData = allBk.length > 0;
+  ['btn-dl-summary','btn-dl-occ','btn-dl-rev'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.disabled=!hasData;
+  });
+  // Detail button enabled only when a guest is shown
+  const detailBtn=document.getElementById('btn-dl-detail');
+  if(detailBtn) detailBtn.disabled=!curDetailGuest;
+}
+
+function showOccupancyWithBtn(){
+  showOccupancy();
+  const el=document.getElementById('btn-dl-occ');
+  if(el) el.disabled=Object.keys(occMap).length===0;
+}
+
+
   const cfg=YCFG[curYear];
   if(Object.keys(occMap).length===0){document.getElementById('occ-content').innerHTML='<div class="empty"><div class="e-icon">🏠</div><h3>No occupancy data</h3><p>Click Refresh to load data first</p></div>';return;}
   const dateOcc=Object.values(occMap).map(d=>({
