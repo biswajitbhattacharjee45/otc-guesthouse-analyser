@@ -1319,7 +1319,7 @@ function showOccupancyWithBtn(){
   if(el) el.disabled=Object.keys(occMap).length===0;
 }
 
-
+function showOccupancy(){
   const cfg=YCFG[curYear];
   if(Object.keys(occMap).length===0){document.getElementById('occ-content').innerHTML='<div class="empty"><div class="e-icon">🏠</div><h3>No occupancy data</h3><p>Click Refresh to load data first</p></div>';return;}
   const dateOcc=Object.values(occMap).map(d=>({
