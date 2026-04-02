@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OTC Guest House · Booking Analyser</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 
@@ -1063,6 +1062,22 @@ let curRevView = 'person';
 let curDetailGuest = null;
 
 // ── helpers ────────────────────────────────────────────
+let _xlsxReady = false;
+let _xlsxLoading = false;
+let _xlsxQueue = [];
+
+function loadXLSX(cb){
+  if(_xlsxReady){ cb(); return; }
+  _xlsxQueue.push(cb);
+  if(_xlsxLoading) return;
+  _xlsxLoading = true;
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  s.onload = ()=>{ _xlsxReady=true; _xlsxLoading=false; _xlsxQueue.forEach(fn=>fn()); _xlsxQueue=[]; };
+  s.onerror = ()=>{ _xlsxLoading=false; _xlsxQueue=[]; alert('Could not load Excel library. Please check your internet connection and try again.'); };
+  document.head.appendChild(s);
+}
+
 function xlsxDownload(wb, filename){
   XLSX.writeFile(wb, filename);
 }
@@ -1083,6 +1098,9 @@ function todayStr(){
 
 // ── 1. GUEST SUMMARY ──────────────────────────────────
 function downloadSummaryExcel(){
+  loadXLSX(_doDownloadSummary);
+}
+function _doDownloadSummary(){
   const total = allBk.length;
   const sorted = Object.entries(gMap)
     .map(([name,bk])=>({name,count:bk.length,months:[...new Set(bk.map(b=>b.month))]}))
@@ -1106,6 +1124,9 @@ function downloadSummaryExcel(){
 
 // ── 2. GUEST DETAIL ───────────────────────────────────
 function downloadDetailExcel(){
+  loadXLSX(_doDownloadDetail);
+}
+function _doDownloadDetail(){
   if(!curDetailGuest || !gMap[curDetailGuest]){ alert('Please search and open a guest first.'); return; }
   const name = curDetailGuest;
   const bk = gMap[name];
@@ -1126,6 +1147,9 @@ function downloadDetailExcel(){
 
 // ── 3. REVENUE ────────────────────────────────────────
 function downloadRevenueExcel(){
+  loadXLSX(_doDownloadRevenue);
+}
+function _doDownloadRevenue(){
   const cfg = YCFG[curYear];
   let wb;
 
@@ -1196,6 +1220,9 @@ function downloadRevenueExcel(){
 
 // ── 4. OCCUPANCY ──────────────────────────────────────
 function downloadOccupancyExcel(){
+  loadXLSX(_doDownloadOccupancy);
+}
+function _doDownloadOccupancy(){
   if(!Object.keys(occMap).length){ alert('No occupancy data. Click Refresh first.'); return; }
   const cfg = YCFG[curYear];
 
