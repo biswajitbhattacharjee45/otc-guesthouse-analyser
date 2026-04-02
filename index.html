@@ -68,6 +68,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);min-height:100
   display:flex;align-items:center;justify-content:center;
   padding:20px;
 }
+#login-page.hidden{display:none !important;}
 
 .login-card{
   width:100%;max-width:420px;
@@ -135,6 +136,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);min-height:100
 
 /* ─── MAIN APP ──────────────────────────────────── */
 #app-page{display:none;position:relative;z-index:1;min-height:100vh;padding:28px 20px 60px;}
+#app-page.visible{display:block !important;}
 
 .wrap{max-width:1040px;margin:0 auto;}
 
@@ -638,29 +640,58 @@ const USERS = {
 };
 
 function doLogin(){
-  const user = document.getElementById('inp-user').value.trim().toLowerCase();
-  const pass = document.getElementById('inp-pass').value;
-  const errEl = document.getElementById('login-err');
-  const errMsg = document.getElementById('login-err-msg');
-  errEl.classList.remove('show');
+  try {
+    const user = document.getElementById('inp-user').value.trim().toLowerCase();
+    const pass = document.getElementById('inp-pass').value;
+    const errEl = document.getElementById('login-err');
+    const errMsg = document.getElementById('login-err-msg');
+    errEl.classList.remove('show');
 
-  if(!user || !pass){ errMsg.textContent='Please enter both username and password.'; errEl.classList.add('show'); return; }
-  const record = USERS[user];
-  if(!record || record.pass !== pass){ errMsg.textContent='Invalid username or password. Please try again.'; errEl.classList.add('show'); return; }
+    if(!user || !pass){
+      errMsg.textContent='Please enter both username and password.';
+      errEl.classList.add('show');
+      return;
+    }
+    const record = USERS[user];
+    if(!record || record.pass !== pass){
+      errMsg.textContent='Invalid username or password. Please try again.';
+      errEl.classList.add('show');
+      return;
+    }
 
-  document.getElementById('user-label').textContent = record.label;
-  document.getElementById('user-avatar').textContent = record.initials;
-  document.getElementById('login-page').style.display = 'none';
-  document.getElementById('app-page').style.display = 'block';
-  loadData();
+    document.getElementById('user-label').textContent = record.label;
+    document.getElementById('user-avatar').textContent = record.initials;
+
+    // Hide login - triple method for bulletproof behaviour
+    const lp = document.getElementById('login-page');
+    lp.style.setProperty('display','none','important');
+    lp.classList.add('hidden');
+
+    // Show app - triple method
+    const ap = document.getElementById('app-page');
+    ap.style.removeProperty('display');
+    ap.style.setProperty('display','block','important');
+    ap.classList.add('visible');
+
+    loadData();
+  } catch(e) {
+    alert('Login error: ' + e.message);
+  }
 }
 
 function doLogout(){
   document.getElementById('inp-user').value = '';
   document.getElementById('inp-pass').value = '';
   document.getElementById('login-err').classList.remove('show');
-  document.getElementById('app-page').style.display = 'none';
-  document.getElementById('login-page').style.display = 'flex';
+
+  const ap = document.getElementById('app-page');
+  ap.style.setProperty('display','none','important');
+  ap.classList.remove('visible');
+
+  const lp = document.getElementById('login-page');
+  lp.style.removeProperty('display');
+  lp.style.setProperty('display','flex','important');
+  lp.classList.remove('hidden');
 }
 
 // Allow Enter key on login inputs
